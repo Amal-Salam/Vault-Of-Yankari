@@ -5,14 +5,16 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 // Texture/model loading with caching, plus procedural canvas textures.
 
 const gltfLoader = new GLTFLoader();
-const gltfCache = new Map<string, Promise<GLTF>>();
+const gltfCache = new Map<() => Promise<string>, Promise<GLTF>>();
 
 /** Loads a GLB once; every call returns a fresh clone (skinned meshes keep their own skeleton). */
-export async function loadModel(url: string): Promise<{ scene: THREE.Object3D; animations: THREE.AnimationClip[] }> {
-  let pending = gltfCache.get(url);
+export async function loadModel(
+  source: () => Promise<string>,
+): Promise<{ scene: THREE.Object3D; animations: THREE.AnimationClip[] }> {
+  let pending = gltfCache.get(source);
   if (!pending) {
-    pending = gltfLoader.loadAsync(url);
-    gltfCache.set(url, pending);
+    pending = source().then((url) => gltfLoader.loadAsync(url));
+    gltfCache.set(source, pending);
   }
   const gltf = await pending;
   const scene = cloneSkinned(gltf.scene);

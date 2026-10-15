@@ -1001,7 +1001,7 @@ export class Escape implements GameScene {
     add(new THREE.CylinderGeometry(0.2, 0.3, 1.6, 6), barkMat, log, 2.2, 1.2, 0.2).rotation.z = -0.5;
     add(new THREE.CylinderGeometry(0.15, 0.25, 1.2, 6), barkMat, log, -1.5, 1.1, -0.2).rotation.z = 0.6;
 
-    const specs: [string, number][] = [
+    const specs: [() => Promise<string>, number][] = [
       [MODELS.elephant, 5.2],
       [MODELS.baboon, 1.1],
       [MODELS.antelope, 2.2],

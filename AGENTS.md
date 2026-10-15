@@ -300,7 +300,7 @@ Rules:
 ## Publishing on start.ng
 - start.ng publishes from the GitHub repo and serves the **committed build** (`dist/`) as-is at `https://vault-of-yankari.start.ng`. It does **not** run `npm run build`.
 - So after any change: `npm run build`, then commit `dist/` together with the source.
-- Only the build's `assets/` folder is known to be served. Keep every runtime file (models, textures, audio) imported through Vite so it lands in `dist/assets/`; files in `public/` subfolders came back 404.
+- start.ng's host only serves certain file types: `.html`, `.js`, `.css` and images work; **`.glb` is refused (404) wherever it sits.** So models are imported as `./models/x.glb?inline`, which our Vite plugin (`vite.config.ts`) turns into a lazily-loaded JS chunk holding the model as a data URL. Use the same approach for any other file type start.ng refuses (check with `curl -I https://vault-of-yankari.start.ng/assets/<file>` after publishing).
 
 ## Open questions
 - Does start.ng impose size or iframe/sandbox limits? (6.5 MB build works so far.)

@@ -124,7 +124,7 @@ export function maskBadge(style: CharacterStyle, size = 108): HTMLCanvasElement 
 export type PlayerKind = 'agent' | 'guard';
 export type PlayerAnim = 'Idle' | 'Walk' | 'Run' | 'Interact' | 'Wave' | 'Idle_Neutral';
 
-const MODEL: Record<PlayerKind, string> = { agent: MODELS.agent, guard: MODELS.guard };
+const MODEL: Record<PlayerKind, () => Promise<string>> = { agent: MODELS.agent, guard: MODELS.guard };
 const HEIGHT = 1.8;
 
 /**
