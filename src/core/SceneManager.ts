@@ -46,6 +46,10 @@ export class SceneManager {
       this.renderPass.scene = next.scene;
       if (import.meta.env.DEV) console.info(`[scene] ${id}`, { ...ctx.renderer.info.memory });
       await ctx.ui.fade(0, 0.7);
+    } catch (err) {
+      console.error(`[scene] ${id} failed to load`, err);
+      ctx.ui.title('Something went wrong', 'The game files could not load · refresh to try again', Infinity, 'danger');
+      void ctx.ui.fade(0.6, 0.4);
     } finally {
       this.busy = false;
     }

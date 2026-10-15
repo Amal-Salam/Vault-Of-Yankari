@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import type { GameContext, GameScene } from '../core/types';
 import { Player } from '../characters/Player';
+import { MODELS } from '../assets/models';
 import { CREW_STYLES } from '../user/styleFromUser';
 import { ParticleField, rng } from '../core/fx';
 import { canvasTexture, fitModel, loadModel } from '../core/Assets';
@@ -309,7 +310,7 @@ export class ColdOpen implements GameScene {
     signPost.position.set(-2.6, 0.8, 8.2);
     this.scene.add(sign, signPost);
 
-    const { scene: elephant } = await loadModel('models/elephant.glb');
+    const { scene: elephant } = await loadModel(MODELS.elephant);
     const herd = new THREE.Group();
     herd.add(elephant);
     fitModel(herd, 5);

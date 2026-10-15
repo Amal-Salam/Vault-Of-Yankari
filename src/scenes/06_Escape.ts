@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { GameContext, GameScene } from '../core/types';
 import { Player } from '../characters/Player';
+import { MODELS } from '../assets/models';
 import { Raptor } from '../characters/Raptor';
 import { CREW_STYLES } from '../user/styleFromUser';
 import { ParticleField, rng } from '../core/fx';
@@ -1001,10 +1002,10 @@ export class Escape implements GameScene {
     add(new THREE.CylinderGeometry(0.15, 0.25, 1.2, 6), barkMat, log, -1.5, 1.1, -0.2).rotation.z = 0.6;
 
     const specs: [string, number][] = [
-      ['models/elephant.glb', 5.2],
-      ['models/baboon.glb', 1.1],
-      ['models/antelope.glb', 2.2],
-      ['models/hippo.glb', 3.8],
+      [MODELS.elephant, 5.2],
+      [MODELS.baboon, 1.1],
+      [MODELS.antelope, 2.2],
+      [MODELS.hippo, 3.8],
     ];
     const [elephant, baboon, antelope, hippo] = await Promise.all(
       specs.map(async ([url, length]) => {

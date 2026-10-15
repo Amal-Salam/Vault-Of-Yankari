@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { fitModel, loadModel } from '../core/Assets';
+import { MODELS } from '../assets/models';
 
 export type RaptorAction = 'Idle' | 'Walk' | 'Run' | 'Attack' | 'Jump' | 'Death';
 
@@ -21,7 +22,7 @@ export class Raptor {
   }
 
   private async load(length: number): Promise<void> {
-    const { scene, animations } = await loadModel('models/raptor.glb');
+    const { scene, animations } = await loadModel(MODELS.raptor);
     // The source model already faces +Z.
     const holder = new THREE.Group();
     holder.add(scene);

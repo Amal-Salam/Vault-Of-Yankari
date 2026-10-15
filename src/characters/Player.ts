@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { CharacterStyle } from '../user/styleFromUser';
 import { canvasTexture, fitModel, loadModel } from '../core/Assets';
 import { rng } from '../core/fx';
+import { MODELS } from '../assets/models';
 
 /** Draws one of the 8 mask patterns in `color` over a w×h area. */
 export function drawMaskPattern(
@@ -123,7 +124,7 @@ export function maskBadge(style: CharacterStyle, size = 108): HTMLCanvasElement 
 export type PlayerKind = 'agent' | 'guard';
 export type PlayerAnim = 'Idle' | 'Walk' | 'Run' | 'Interact' | 'Wave' | 'Idle_Neutral';
 
-const MODEL: Record<PlayerKind, string> = { agent: 'models/agent.glb', guard: 'models/guard.glb' };
+const MODEL: Record<PlayerKind, string> = { agent: MODELS.agent, guard: MODELS.guard };
 const HEIGHT = 1.8;
 
 /**

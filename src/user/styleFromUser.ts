@@ -37,13 +37,19 @@ function pick<T>(list: readonly T[], hash: number): T {
   return list[hash % list.length];
 }
 
+const HEX = /^#[0-9a-f]{6}$/i;
+
 export function styleFromUser(user: StartNgUser): CharacterStyle {
   const key = user.username.toLowerCase();
   const h = (salt: number) => cyrb53(key, salt);
+  // Colours from the player's start.ng character (curated palettes there too) win when present.
+  const platform = user.platformStyle;
+  const suit = platform?.secondaryColor && HEX.test(platform.secondaryColor) ? platform.secondaryColor : null;
+  const accent = platform?.primaryColor && HEX.test(platform.primaryColor) ? platform.primaryColor : null;
   return {
     codename: `Agent ${pick(CODENAMES, h(5))}-${(h(6) % 9) + 1}`,
-    suitColor: pick(SUIT_COLORS, h(1)),
-    accentColor: pick(ACCENT_COLORS, h(2)),
+    suitColor: suit ?? pick(SUIT_COLORS, h(1)),
+    accentColor: accent ?? pick(ACCENT_COLORS, h(2)),
     visorTint: pick(VISOR_TINTS, h(3)),
     maskPattern: h(4) % 8,
     suitVariant: TRACK_VARIANTS[user.track?.toLowerCase() ?? ''] ?? pick(VARIANTS, h(7)),

@@ -55,8 +55,9 @@ export async function getUser(): Promise<StartNgUser>;
 ```
 
 - Players sign up and sign in **on start.ng itself**, never inside the game. The game never asks for a username; it only reads who is already signed in, so their start.ng username applies the moment they open the game. To change their name, they change it on start.ng.
-- **Now:** start.ng is not live. `getUser()` uses, in order: the hidden testing shortcut `?user=<username>` (remove once real auth is live), the start.ng signed-in user (stub, returns nothing yet), a fixed dev user (`tester`) in `npm run dev` only, otherwise guest.
-- **Later:** the start.ng user is expected to arrive as a **session token** (to be confirmed). Only `fromStartNg()` inside `getUser.ts` changes.
+- **How the game gets the user (start.ng protocol):** the game is served at `https://<game>.start.ng`. It loads `https://start.ng/connect` in a hidden iframe and posts `{ type: 'startng:whoami', requestId }`. start.ng reads the player's session token on its own origin and replies `{ type: 'startng:user', user: { id, name, style } | null, requestId }`. `style` is the character the player made in start.ng's character creator (`primaryColor`, `secondaryColor`, `skinColor`, `hairColor`, `hair`, `hat`, `accessory`, `body`).
+- The same channel also offers `startng:score` (save a score) and `startng:leaderboard` (read top scores). Not used yet.
+- `getUser()` order: the hidden testing shortcut `?user=<username>` (remove before final submission), the start.ng user, a fixed dev user (`tester`) in `npm run dev` only, otherwise guest. Locally, `http://<game>.start.localhost:<port>` is also accepted by start.ng for testing the protocol.
 - **No other file may read user data directly.** This is what keeps the swap to a single file.
 - If the user cannot be loaded, fall back to a guest user and show a small "Playing as guest" notice. Never crash.
 
@@ -75,6 +76,7 @@ export interface CharacterStyle {
 
 - Hash the username (e.g. cyrb53 or FNV-1a) and derive every value from the hash.
 - Colours must come from a curated palette so every combination looks good. No raw random RGB.
+- When start.ng provides the player's character `style`, its `secondaryColor` becomes the suit and `primaryColor` the accent, so the agent matches their start.ng character. Mask pattern, visor tint and codename still come from the name hash.
 - If `track` is present, it may pick the suit variant (e.g. frontend = light suit, backend = heavy suit, devops = utility harness).
 
 ### Where the styling must be visible
@@ -295,7 +297,10 @@ Rules:
 - **Never push, open PRs, open issues, or comment on GitHub without Mal's explicit approval.** Draft the commit message or PR description and hand it over instead.
 - When unsure about gameplay feel, prefer simpler mechanics with better camera, lighting and sound.
 
+## Publishing on start.ng
+- start.ng publishes from the GitHub repo and serves the **committed build** (`dist/`) as-is at `https://vault-of-yankari.start.ng`. It does **not** run `npm run build`.
+- So after any change: `npm run build`, then commit `dist/` together with the source.
+- Only the build's `assets/` folder is known to be served. Keep every runtime file (models, textures, audio) imported through Vite so it lands in `dist/assets/`; files in `public/` subfolders came back 404.
+
 ## Open questions
-- How does start.ng authenticate users (SDK, redirect token, or iframe postMessage)? What user fields are available?
-- How are games published to start.ng (upload a build, link a URL, or repo)?
-- Does start.ng impose size or iframe/sandbox limits?
+- Does start.ng impose size or iframe/sandbox limits? (6.5 MB build works so far.)

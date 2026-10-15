@@ -8,7 +8,23 @@ export interface StartNgUser {
   avatarUrl?: string;
   track?: string; // e.g. "frontend", "backend", "devops"
   isGuest?: boolean;
+  /** The character the player designed in start.ng's own character creator, if any. */
+  platformStyle?: StartNgCharacterStyle;
 }
+
+export interface StartNgCharacterStyle {
+  body?: string;
+  primaryColor?: string; // bright
+  secondaryColor?: string; // dark
+  skinColor?: string;
+  hairColor?: string;
+  hair?: string;
+  hat?: string;
+  accessory?: string;
+}
+
+const STARTNG_ORIGIN = 'https://start.ng';
+const CONNECT_TIMEOUT_MS = 4000;
 
 const GUEST_USER: StartNgUser = {
   id: 'guest',
@@ -29,13 +45,52 @@ function clean(value: string): string {
   return value.trim().replace(/^@/, '').replace(/[^\w.-]/g, '').slice(0, 24);
 }
 
+/** True when served from a start.ng game address: https://<game>.start.ng, or start.ng's local test form <game>.start.localhost. */
+function onStartNg(): boolean {
+  return /\.start\.(ng|localhost)$/.test(window.location.hostname);
+}
+
 /**
- * The signed-in start.ng user. Expected to come from a session token handed to the game by
- * start.ng (to be confirmed). Returns null until that integration exists, or when the game is
- * opened outside start.ng.
+ * The signed-in start.ng user. start.ng's protocol: load https://start.ng/connect in a hidden
+ * iframe and send it `startng:whoami`; it reads the player's session token on start.ng and
+ * replies with `startng:user` ({ id, name, style }, or null if nobody is signed in).
  */
 async function fromStartNg(): Promise<StartNgUser | null> {
-  return null;
+  if (!onStartNg()) return null;
+  const frame = document.createElement('iframe');
+  frame.src = `${STARTNG_ORIGIN}/connect`;
+  frame.title = 'start.ng connection';
+  frame.style.display = 'none';
+  const requestId = `whoami-${Date.now()}`;
+  try {
+    const reply = await new Promise<{ user?: { id?: unknown; name?: unknown; style?: unknown } | null } | null>((resolve) => {
+      const timer = window.setTimeout(() => done(null), CONNECT_TIMEOUT_MS);
+      function done(value: Parameters<typeof resolve>[0]) {
+        window.clearTimeout(timer);
+        window.removeEventListener('message', onMessage);
+        resolve(value);
+      }
+      function onMessage(e: MessageEvent) {
+        if (e.origin !== STARTNG_ORIGIN || e.data?.requestId !== requestId || e.data?.type !== 'startng:user') return;
+        done(e.data);
+      }
+      window.addEventListener('message', onMessage);
+      frame.addEventListener('load', () => frame.contentWindow?.postMessage({ type: 'startng:whoami', requestId }, STARTNG_ORIGIN));
+      frame.addEventListener('error', () => done(null));
+      document.body.appendChild(frame);
+    });
+    const u = reply?.user;
+    if (!u || typeof u.name !== 'string' || !u.name.trim()) return null;
+    const name = u.name.trim().slice(0, 24);
+    return {
+      id: String(u.id ?? name),
+      username: clean(name) || name,
+      displayName: name,
+      platformStyle: u.style && typeof u.style === 'object' ? (u.style as StartNgCharacterStyle) : undefined,
+    };
+  } finally {
+    frame.remove();
+  }
 }
 
 /** Hidden testing shortcut: `?user=alice` (optionally `&track=backend`). Remove once real auth is live. */
