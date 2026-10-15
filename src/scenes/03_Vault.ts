@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import type { GameContext, GameScene } from '../core/types';
-import { Player, maskBadge } from '../characters/Player';
-import { GUARD_STYLE } from '../user/styleFromUser';
+import { Player } from '../characters/Player';
+import { renderPortrait } from '../characters/Portrait';
+import { GUARD_STYLE, avatarFromUser } from '../user/styleFromUser';
 import { canvasTexture } from '../core/Assets';
 import { disposeScene } from '../core/dispose';
 import { el, type RadioLine } from '../ui/UI';
@@ -183,7 +184,17 @@ export class Vault implements GameScene {
     window.setTimeout(() => this.say('brief', { who: 'Agent Harmattan-2', lang: 'Pidgin', text: 'Na three card we need. Make you no wake dem.', en: 'We need three keycards. Don’t alert them.' }), 1500);
   }
 
+  private stopWatchingUser: () => void = () => {};
+  private badgeCode!: HTMLElement;
+  private badgeUser!: HTMLElement;
+
+  private userLine(): string {
+    const { user } = this.ctx;
+    return `@${user.username}${user.track ? ` · ${user.track}` : ''}`;
+  }
+
   exit(): void {
+    this.stopWatchingUser();
     this.tl?.kill();
     gsap.killTweensOf(this.door.position);
     disposeScene(this.scene);
@@ -704,11 +715,19 @@ export class Vault implements GameScene {
     const hud = this.ctx.ui.hud();
 
     const badge = el('div', 'badge', hud);
-    badge.append(maskBadge(style, 108));
+    // The player's start.ng avatar face, redrawn live if they edit it on start.ng.
+    const face = el('img', 'face', badge);
+    face.alt = 'Crew photo';
+    face.src = renderPortrait(this.ctx.renderer, avatarFromUser(user));
     const info = el('div', '', badge);
     el('div', 'label', info, 'CREW ID · YANKARI VAULT');
-    el('div', 'code', info, style.codename);
-    el('div', 'user', info, `@${user.username}${user.track ? ` · ${user.track}` : ''}`);
+    this.badgeCode = el('div', 'code', info, style.codename);
+    this.badgeUser = el('div', 'user', info, this.userLine());
+    this.stopWatchingUser = this.ctx.onUserChange(() => {
+      face.src = renderPortrait(this.ctx.renderer, avatarFromUser(this.ctx.user));
+      this.badgeCode.textContent = this.ctx.style.codename;
+      this.badgeUser.textContent = this.userLine();
+    });
 
     const cards = el('div', 'cards', hud);
     const row = el('div', 'row', cards);

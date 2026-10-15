@@ -111,3 +111,41 @@ export async function getUser(): Promise<StartNgUser> {
     return GUEST_USER;
   }
 }
+
+const RECHECK_MS = 15000;
+
+/**
+ * Re-reads the start.ng user when the player comes back to the game (e.g. after editing their
+ * avatar on start.ng in another tab) and every 15 s while visible. Calls `onChange` only when
+ * something actually changed. Returns a function that stops watching. No-op outside start.ng.
+ */
+export function watchUser(current: StartNgUser, onChange: (user: StartNgUser) => void): () => void {
+  if (!onStartNg() || current.isGuest || fromTestParam()) return () => {};
+  let last = JSON.stringify(current);
+  let busy = false;
+  const check = async () => {
+    if (busy || document.hidden) return;
+    busy = true;
+    try {
+      const user = await fromStartNg();
+      const sig = user && JSON.stringify(user);
+      if (user && sig !== last) {
+        last = sig as string;
+        onChange(user);
+      }
+    } catch {
+      // keep the last known user
+    } finally {
+      busy = false;
+    }
+  };
+  const onVisible = () => void check();
+  document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('focus', onVisible);
+  const timer = window.setInterval(onVisible, RECHECK_MS);
+  return () => {
+    document.removeEventListener('visibilitychange', onVisible);
+    window.removeEventListener('focus', onVisible);
+    window.clearInterval(timer);
+  };
+}

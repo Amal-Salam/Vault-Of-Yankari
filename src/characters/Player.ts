@@ -101,26 +101,6 @@ function darken(hex: string, k: number): string {
   return `#${new THREE.Color(hex).multiplyScalar(k).getHexString()}`;
 }
 
-/** A small helmet "portrait" for the crew ID badge (stands in for the avatar image for now). */
-export function maskBadge(style: CharacterStyle, size = 108): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = size;
-  const g = canvas.getContext('2d');
-  if (!g) return canvas;
-  g.fillStyle = darken(style.suitColor, 0.6);
-  g.fillRect(0, 0, size, size);
-  g.globalAlpha = 0.6;
-  drawMaskPattern(g, size, size, style.maskPattern, style.accentColor);
-  g.globalAlpha = 1;
-  g.shadowColor = style.visorTint;
-  g.shadowBlur = 14;
-  g.fillStyle = style.visorTint;
-  g.beginPath();
-  g.roundRect(size * 0.16, size * 0.42, size * 0.68, size * 0.17, size * 0.08);
-  g.fill();
-  return canvas;
-}
-
 export type PlayerKind = 'agent' | 'guard';
 export type PlayerAnim = 'Idle' | 'Walk' | 'Run' | 'Interact' | 'Wave' | 'Idle_Neutral';
 

@@ -6,7 +6,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { GradePass } from './core/post';
-import { getUser } from './user/getUser';
+import { getUser, watchUser } from './user/getUser';
 import { styleFromUser } from './user/styleFromUser';
 import { Input } from './core/Input';
 import { AudioEngine } from './core/Audio';
@@ -71,6 +71,15 @@ async function boot(): Promise<void> {
   if (user.isGuest) ui.notice('Playing as guest');
 
   let manager: SceneManager | null = null;
+  // The player may edit their start.ng avatar mid-session; keep user/style current and tell listeners.
+  const userListeners = new Set<() => void>();
+  watchUser(user, (next) => {
+    Object.assign(user, next);
+    Object.assign(style, styleFromUser(user));
+    document.documentElement.style.setProperty('--accent', style.accentColor);
+    userListeners.forEach((listener) => listener());
+  });
+
   const ctx: GameContext = {
     renderer,
     camera,
@@ -84,6 +93,10 @@ async function boot(): Promise<void> {
     grade,
     envMap,
     goTo: (id) => void manager?.goTo(id),
+    onUserChange: (listener) => {
+      userListeners.add(listener);
+      return () => userListeners.delete(listener);
+    },
   };
   manager = new SceneManager(ctx, FACTORIES, renderPass);
   if (import.meta.env.DEV) Object.assign(window, { game: { ctx, manager } });

@@ -84,7 +84,7 @@ export interface CharacterStyle {
 |---|---|
 | Cold open | Camera orbit around the styled player; title card "Starring {displayName or username}" |
 | Player model | Suit colour, accent colour, mask pattern, visor tint |
-| Crew ID badge (Vault scene HUD) | Avatar image + codename |
+| Crew ID badge (Vault scene HUD) | The player's **start.ng avatar face** (skin, hair, hair colour, hat, accessory, outfit colour from their start.ng character), rendered by `characters/Portrait.ts`, plus codename. Updates live when they edit their avatar on start.ng (`watchUser` re-checks on tab focus and every 15 s). Non-start.ng users get a face derived from their username. |
 | Jeep (Escape scene) | Username decal on the side |
 | End credits | Username and codename listed first |
 

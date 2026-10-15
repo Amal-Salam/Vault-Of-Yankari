@@ -1,4 +1,4 @@
-import type { StartNgUser } from './getUser';
+import type { StartNgCharacterStyle, StartNgUser } from './getUser';
 import { ACCENT_COLORS, CODENAMES, SUIT_COLORS, VISOR_TINTS } from './palette';
 
 export type SuitVariant = 'light' | 'heavy' | 'utility';
@@ -53,6 +53,40 @@ export function styleFromUser(user: StartNgUser): CharacterStyle {
     visorTint: pick(VISOR_TINTS, h(3)),
     maskPattern: h(4) % 8,
     suitVariant: TRACK_VARIANTS[user.track?.toLowerCase() ?? ''] ?? pick(VARIANTS, h(7)),
+  };
+}
+
+/** Every field of a start.ng avatar, filled in. */
+export type Avatar = Required<StartNgCharacterStyle>;
+
+const AVATAR_SKIN = ['#5c3a21', '#8d5524', '#a0662f', '#c68642', '#e0ac69', '#f1c27d'];
+const AVATAR_HAIR_COLOR = ['#17120f', '#4a2c1a', '#8b5a2b', '#d9a441', '#b8b8b8', '#c0392b'];
+const AVATAR_PRIMARY = ['#ff6b6b', '#1dd1a1', '#a55eea', '#4b7bec', '#f7b731', '#fd9644', '#eb3b5a', '#292a23'];
+const AVATAR_SECONDARY = ['#2b2f4a', '#222f3e', '#3d3d3d', '#4b6584', '#5f3dc4', '#0c6e5a'];
+const AVATAR_HAIR: Record<string, string[]> = {
+  female: ['braids', 'bun', 'ponytail', 'afro', 'short'],
+  male: ['short', 'afro', 'dreads', 'bald'],
+};
+
+/**
+ * The player's face for the crew ID badge: their start.ng avatar when they have one, otherwise
+ * derived from the username (so test users and guests still differ, deterministically).
+ */
+export function avatarFromUser(user: StartNgUser): Avatar {
+  const p = user.platformStyle ?? {};
+  const h = (salt: number) => cyrb53(user.username.toLowerCase(), 100 + salt);
+  const body = p.body === 'female' || p.body === 'male' ? p.body : pick(['female', 'male'], h(1));
+  const color = (value: string | undefined, fallback: string[], salt: number) =>
+    value && HEX.test(value) ? value : pick(fallback, h(salt));
+  return {
+    body,
+    skinColor: color(p.skinColor, AVATAR_SKIN, 2),
+    hairColor: color(p.hairColor, AVATAR_HAIR_COLOR, 3),
+    primaryColor: color(p.primaryColor, AVATAR_PRIMARY, 4),
+    secondaryColor: color(p.secondaryColor, AVATAR_SECONDARY, 5),
+    hair: p.hair ?? pick(AVATAR_HAIR[body], h(6)),
+    hat: p.hat ?? 'none',
+    accessory: p.accessory ?? 'none',
   };
 }
 

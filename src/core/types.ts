@@ -23,6 +23,8 @@ export interface GameContext {
   grade: GradePass;
   envMap: THREE.Texture; // shared reflection environment; scenes set scene.environment
   goTo(id: SceneId): void;
+  /** Subscribe to the signed-in user changing (e.g. avatar edited on start.ng). Returns an unsubscribe. */
+  onUserChange(listener: () => void): () => void;
 }
 
 export interface GameScene {

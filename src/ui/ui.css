@@ -126,7 +126,10 @@ body {
   padding: 10px 16px 10px 10px; background: var(--panel); border: 1px solid var(--line);
   border-left: 3px solid var(--accent);
 }
-.badge canvas { width: 54px; height: 54px; border-radius: 50%; border: 2px solid var(--accent); }
+.badge .face {
+  width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover;
+  background: radial-gradient(circle at 50% 35%, #2c3646, #0d1118);
+}
 .badge .label { font-size: 10px; letter-spacing: 0.25em; color: var(--dim); }
 .badge .code { font-family: var(--title); font-size: 26px; letter-spacing: 0.06em; line-height: 1.1; }
 .badge .user { font-size: 12px; letter-spacing: 0.08em; color: var(--accent); }
